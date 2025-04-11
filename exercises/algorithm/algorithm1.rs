@@ -2,11 +2,10 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+//use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -69,14 +68,46 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(mut list_a:LinkedList<T>, mut list_b:LinkedList<T>) -> Self
+    where 
+        T: Ord,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+       let mut merged_list = LinkedList::new();
+        let mut dummy = Box::new(Node::new(unsafe { std::mem::zeroed() }));
+        let dummy_ptr = dummy.as_mut() as *mut Node<T>;
+        let mut current = dummy_ptr;
+
+        unsafe {
+            while let (Some(a), Some(b)) = (list_a.start, list_b.start) {
+                if (*a.as_ptr()).val <= (*b.as_ptr()).val {
+                    (*current).next = Some(a);
+                    current = a.as_ptr();
+                    list_a.start = (*current).next;
+                } else {
+                    (*current).next = Some(b);
+                    current = b.as_ptr();
+                    list_b.start = (*current).next;
+                }
+            }
         }
+
+        if let Some(remaining) = list_a.start.or(list_b.start) {
+            unsafe {
+                (*current).next = Some(remaining);
+            }
+            merged_list.end = if list_a.start.is_some() {
+                list_a.end
+            } else {
+                list_b.end
+            };
+        } else {
+            merged_list.end = NonNull::new(current);
+        }
+
+        merged_list.start = dummy.next;
+        merged_list.length = list_a.length + list_b.length;
+
+        merged_list 
 	}
 }
 

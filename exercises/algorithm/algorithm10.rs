@@ -2,9 +2,8 @@
 	graph
 	This problem requires you to implement a basic graph functio
 */
-// I AM NOT DONE
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 use std::fmt;
 #[derive(Debug, Clone)]
 pub struct NodeNotInGraph;
@@ -30,6 +29,22 @@ impl Graph for UndirectedGraph {
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
         //TODO
+        let (u, v, w) = edge;
+        // Ensure both nodes exist in the graph, adding them if necessary.
+        self.add_node(u);
+        self.add_node(v);
+
+        // Add edge from u to v
+        self.adjacency_table_mutable()
+            .entry(u.to_string())
+            .or_insert_with(Vec::new) // Should already exist due to add_node, but defensive
+            .push((v.to_string(), w));
+
+        // Add edge from v to u (since it's undirected)
+        self.adjacency_table_mutable()
+            .entry(v.to_string())
+            .or_insert_with(Vec::new) // Should already exist due to add_node, but defensive
+            .push((u.to_string(), w));
     }
 }
 pub trait Graph {
@@ -38,10 +53,28 @@ pub trait Graph {
     fn adjacency_table(&self) -> &HashMap<String, Vec<(String, i32)>>;
     fn add_node(&mut self, node: &str) -> bool {
         //TODO
-		true
+		//true
+        // Use the entry API for efficiency and conciseness.
+        match self.adjacency_table_mutable().entry(node.to_string()) {
+            Entry::Occupied(_) => false, // Node already exists
+            Entry::Vacant(entry) => {
+                entry.insert(Vec::new()); // Insert node with empty adjacency list
+                true // Node was added
+            }
+        }
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
         //TODO
+         let (u, v, w) = edge;
+        // Ensure both nodes exist
+        self.add_node(u);
+        self.add_node(v);
+
+        // Add directed edge u -> v
+        self.adjacency_table_mutable()
+            .entry(u.to_string())
+            .or_insert_with(Vec::new)
+            .push((v.to_string(), w));
     }
     fn contains(&self, node: &str) -> bool {
         self.adjacency_table().get(node).is_some()
