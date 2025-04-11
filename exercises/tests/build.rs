@@ -4,7 +4,5 @@ fn main() {
         .unwrap()
         .as_secs();
     println!("cargo:rustc-env=TEST_FOO={}", timestamp);
-    println!("cargo:rustc-env=FEATURE_PASS=1");
-
-    println!("cargo:rustc-cfg=pass");
+    println!("cargo:rustc-cfg=feature=\"pass\"");
 }
